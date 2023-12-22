@@ -7,53 +7,6 @@ import icoEndec from 'ico-endec';
 import sharp from 'sharp';
 import { optimize } from 'svgo';
 
-interface CommandLineOptions {
-  input: string | null;
-  quality: number;
-  manifestName: string;
-}
-
-const args = process.argv.slice(2);
-
-const parseArgs = (args: string[]): CommandLineOptions => {
-  const options: CommandLineOptions = {
-    input: null,
-    quality: 85, // Default quality
-    manifestName: 'TODO' // Default manifest name
-  };
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--input' || args[i] === '-i') {
-      options.input = args[++i];
-    } else if (args[i] === '--quality' || args[i] === '-q') {
-      options.quality = parseInt(args[++i], 10);
-    } else if (args[i] === '--name' || args[i] === '-n') {
-      options.manifestName = args[++i];
-    } else if (!options.input) {
-      options.input = args[i];
-    }
-  }
-
-  return options;
-};
-
-const { input, quality, manifestName } = parseArgs(args);
-
-if (!input) {
-  console.error(
-    'No Input Found. Try Using: npx @mynaui/favicons your_icon_name.svg'
-  );
-  process.exit(1);
-}
-
-export const DEFAULTS = {
-  IOS_IMAGE_PADDING: 0,
-  IOS_PADDING_COLOR: { r: 0, g: 0, b: 0, alpha: 0 },
-  PNG_QUALITY: quality
-};
-
-export type OPTIONS = typeof DEFAULTS;
-
 async function createWebManifest(fileDir: string, manifestName: string) {
   const manifest = {
     name: manifestName,
@@ -68,18 +21,23 @@ async function createWebManifest(fileDir: string, manifestName: string) {
   );
 }
 
-async function generatePNG(svgContent: string, size: number, pathPNG: string) {
+async function generatePNG(
+  svgContent: string,
+  size: number,
+  quality: number,
+  pathPNG: string
+) {
   await sharp(Buffer.from(svgContent))
     .resize(size, size)
     .png({
-      quality: DEFAULTS.PNG_QUALITY
+      quality
     })
     .toFile(pathPNG);
 }
 
-export async function processSvgFile(
+async function processSvgFile(
   filePath: string,
-  options: OPTIONS,
+  quality: number,
   manifestName: string
 ) {
   try {
@@ -102,9 +60,9 @@ export async function processSvgFile(
 
     // Create PNG Icons
     await Promise.all([
-      generatePNG(svgContent, 180, `${fileDir}/apple-touch-icon.png`),
-      generatePNG(svgContent, 192, `${fileDir}/icon-192.png`),
-      generatePNG(svgContent, 512, `${fileDir}/icon-512.png`)
+      generatePNG(svgContent, 180, quality, `${fileDir}/apple-touch-icon.png`),
+      generatePNG(svgContent, 192, quality, `${fileDir}/icon-192.png`),
+      generatePNG(svgContent, 512, quality, `${fileDir}/icon-512.png`)
     ]);
 
     // Create manifest.webmanifest
@@ -119,11 +77,52 @@ export async function processSvgFile(
 
 export async function generateFavicons(
   faviconPath: string,
-  options = DEFAULTS,
+  quality: number,
   manifestName: string = 'TODO'
 ) {
-  if (path.extname(faviconPath) === '.svg')
-    await processSvgFile(faviconPath, options, manifestName);
+  if (!faviconPath) {
+    console.error(
+      'No Input Found. Try Using: npx @mynaui/favicons your_icon_name.svg'
+    );
+    process.exit(1);
+  }
+  if (!faviconPath.includes('.svg')) {
+    console.error('Not a SVG File.');
+    process.exit(1);
+  }
+  await processSvgFile(faviconPath, quality, manifestName);
 }
 
-generateFavicons(input, DEFAULTS, manifestName).catch(console.error);
+// CLI
+if (process.argv.length > 2) {
+  const args = process.argv.slice(2);
+  type Options = {
+    input: string;
+    quality: number | 85;
+    manifestName: string | 'TODO';
+  };
+  const parseArgs = (args: string[]): Options => {
+    const options: Options = {
+      input: '',
+      quality: 85, // Default quality
+      manifestName: 'TODO' // Default manifest name
+    };
+
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--input' || args[i] === '-i') {
+        options.input = args[++i];
+      } else if (args[i] === '--quality' || args[i] === '-q') {
+        options.quality = parseInt(args[++i], 10);
+      } else if (args[i] === '--name' || args[i] === '-n') {
+        options.manifestName = args[++i];
+      } else if (!options.input) {
+        options.input = args[i];
+      }
+    }
+
+    return options;
+  };
+
+  const { input, quality, manifestName } = parseArgs(args);
+  generateFavicons(input, quality, manifestName).catch(console.error);
+}
