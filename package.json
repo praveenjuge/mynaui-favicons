@@ -30,9 +30,6 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint --cache .",
-    "lint:fix": "pnpm run lint --fix",
-    "prepublishOnly": "pnpm run build",
-    "release": "bumpp && pnpm publish",
     "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
