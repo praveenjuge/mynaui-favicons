@@ -1,0 +1,65 @@
+{
+  "name": "mynaui-favicons",
+  "version": "0.0.0",
+  "description": "Simple & Quick Favicons Generator",
+  "homepage": "https://github.com/praveenjuge/mynaui-favicons#readme",
+  "bugs": {
+    "url": "https://github.com/praveenjuge/mynaui-favicons/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/praveenjuge/mynaui-favicons.git"
+  },
+  "license": "MIT",
+  "author": "Praveen Juge <hello@praveenjuge.com>",
+  "type": "module",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint --cache .",
+    "lint:fix": "pnpm run lint --fix",
+    "prepublishOnly": "pnpm run build",
+    "release": "bumpp && pnpm publish",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "prettier": {
+    "arrowParens": "always",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "none"
+  },
+  "dependencies": {
+    "ico-endec": "^0.1.6",
+    "sharp": "^0.33.1",
+    "svgo": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "tsup": "^8.0.1",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
